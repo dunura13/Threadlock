@@ -2,13 +2,21 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, BackgroundTasks
 import google.generativeai as genai
-from supabase import create_client
+from supabase import create_client, Client
 from slack_sdk import WebClient
 import json
 
 
 
 load_dotenv() # load environemnt variables
+
+
+# initalize supabase 
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
+
+
 
 slack_client = WebClient( # initalize slack app
     token = os.environ.get("SLACK_BOT_TOKEN"))
@@ -17,10 +25,11 @@ slack_client = WebClient( # initalize slack app
 genai.configure(api_key = os.environ.get("GEMINI_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash")
 
+slack_client
+
 
 
 app = FastAPI()
-
 
 # runs after server replies to slack
 def process_decision(event: dict):
@@ -58,6 +67,22 @@ def process_decision(event: dict):
 
         # Construct a reply
         if result_data.get("decision"):
+            try:
+                data_to_insert = {
+                    "slack_channel_id": channel_id,
+                    "slack_thread_ts": thread_ts,
+                    "decision_text": result_data['decision'],
+                    "rationale": result_data['rationale'],
+                    "raw_json": result_data # save the full json (jus in case)
+                }
+
+                supabase.table("decisions").insert(data_to_insert).execute()
+                print("Decision saved to Supabase.")
+                
+            except Exception as db_error:
+                print(f"Database Error: {db_error}")
+
+
             reply_text = (
                 f"**Decision Detected**\n"
                 f"> *{result_data['decision']}*\n"
@@ -75,10 +100,16 @@ def process_decision(event: dict):
             thread_ts = thread_ts
         )
 
+
+
         print("Reply sent to slack")
+
+
 
     except Exception as e:
         print(f"GEMINI/SLACK error: {e}")
+    
+
 
 
 
