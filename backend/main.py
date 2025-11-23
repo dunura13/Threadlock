@@ -1,10 +1,21 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from openai import OpenAI
 from supabase import create_client
+from slack_bolt import App
+from slack_bolt.adapter.fastapi import SlackRequestHandler
 
-load_dotenv() 
+
+
+load_dotenv() # load environemnt variables
+
+slack_app = App( # initalize slack app
+    token = os.environ.get("SLACK_BOT_TOKEN"),
+    signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
+)
+
+handler = SlackRequestHandler(slack_app)
 
 try:
     #test openAI connection
@@ -26,10 +37,17 @@ except Exception as e:
 
 app = FastAPI()
 
+@app.post("/slack/events")
+async def slack_events(req: Request):
+    return await handler.handle(req)
+
 @app.get("/")
 def health_check():
     return {"status":"alive", "message":"ThreadLock is running"}
 
+@slack_app.event("app_mention")
+def handle_app_mention(body, say):
+    say("Threadlock, at your service!")
 
 
 
