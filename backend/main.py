@@ -78,7 +78,7 @@ def process_decision(event: dict):
 
                 supabase.table("decisions").insert(data_to_insert).execute()
                 print("Decision saved to Supabase.")
-                
+
             except Exception as db_error:
                 print(f"Database Error: {db_error}")
 
@@ -138,10 +138,6 @@ async def slack_events(request: Request, background_tasks: BackgroundTasks):
     
     return {"status": "ok"} # so slack does not timeout
     
-
-
-
-
 
 
 
