@@ -73,7 +73,11 @@ def process_decision(event: dict):
 
         # Construct a reply
         if result_data.get("decision"):
+            
+            # NEED TO IMPLEMENT JIRA CODE HERE
             try:
+
+
                 data_to_insert = {
                     "slack_channel_id": channel_id,
                     "slack_thread_ts": thread_ts,
