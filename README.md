@@ -63,8 +63,8 @@ Supabase & Jira Accounts
 1. Clone the Repo
 Bash
 
-git clone https://github.com/yourusername/threadlock.git
-cd threadlock
+git clone https://github.com/dunura13/Threadlock.git
+cd Threadlock
 2. Backend Setup
 Bash
 
@@ -122,9 +122,5 @@ Edit Functionality: Allow users to edit the decision summary before it syncs to 
 Vector Search: Use embeddings to allow users to ask "What was the last decision we made about the database?"
 
 👨‍💻 Author
-[Your Name]
+Dunura Epasinghe
 
-GitHub Profile
-
-LinkedIn
-ThreadLock is an intelligent background agent for Slack that solves "Context Fragmentation."
