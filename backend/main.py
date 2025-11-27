@@ -9,7 +9,7 @@ from jira import JIRA
 
 
 
-load_dotenv() # load environemnt variables
+load_dotenv() 
 
 
 # initalize supabase 
@@ -57,7 +57,7 @@ def process_decision(event: dict):
         If NO decision is made, return exactly: {{ "decision": false }}
         """
 
-        # CALL gemini api
+        # gemini api
         response = model.generate_content(
             prompt,
             generation_config={"response_mime_type": "application/json"}
@@ -74,7 +74,6 @@ def process_decision(event: dict):
         # Construct a reply
         if result_data.get("decision"):
 
-            # NEED TO IMPLEMENT JIRA CODE HERE
             print("Creating Jira Ticket...")
             try:
                 new_issue = jira.create_issue(fields={
@@ -166,7 +165,7 @@ async def slack_events(request: Request, background_tasks: BackgroundTasks):
         background_tasks.add_task(process_decision, event)
 
     
-    return {"status": "ok"} # so slack does not timeout
+    return {"status": "ok"} # so slack doesnt timeout
     
 
 
