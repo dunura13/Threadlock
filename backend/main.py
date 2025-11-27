@@ -73,31 +73,54 @@ def process_decision(event: dict):
 
         # Construct a reply
         if result_data.get("decision"):
-            
+
             # NEED TO IMPLEMENT JIRA CODE HERE
+            print("Creating Jira Ticket...")
             try:
+                new_issue = jira.create_issue(fields={
+                    'project':{'key':os.environ.get("JIRA_PROJECT_KEY")},
+                    'summary':f"DECISION: {result_data['decision']}",
+                    'description':f"**Rationale:**\n{result_data['rationale']}\n\n**Action Items:**\n{result_data['action_items']}\n\n*Created by Threadlock via Slack*",
+                    'issuetype':{'name':'Task'},
+                })
+                jira_link = new_issue.permalink()
+                print(f"Ticket created: {jira_link}")
 
+            except Exception as jira_error:
+                print(f"Jira Error: {jira_error}")
+                jira_link = None
+            
 
+            try:
                 data_to_insert = {
                     "slack_channel_id": channel_id,
                     "slack_thread_ts": thread_ts,
                     "decision_text": result_data['decision'],
                     "rationale": result_data['rationale'],
+                    "ticket_link": jira_link,
                     "raw_json": result_data # save the full json (jus in case)
                 }
 
                 supabase.table("decisions").insert(data_to_insert).execute()
                 print("Decision saved to Supabase.")
-
+            
             except Exception as db_error:
-                print(f"Database Error: {db_error}")
+                print(f"Supabase Error: {db_error}")
 
 
-            reply_text = (
-                f"**Decision Detected**\n"
-                f"> *{result_data['decision']}*\n"
-                f"**Rationale:**{result_data['rationale']}"
-            )
+                
+            if jira_link:
+                reply_text = (
+                    f"**Decision Locked**\n"
+                    f"> *{result_data['decision']}*\n"
+                    f"**Jira Ticket:** <{jira_link}|{new_issue.key}>"
+                )
+            else:
+                reply_text = (
+                    f"**Decision Locked** (Saved to Dashboard)\n"
+                    f"> *{result_data['decision']}*\n"
+                    f"*Jira creation failed, check server logs.*"
+                )
         
         else:
             reply_text = "Analyzed this but didnt find a firm decision. Try being more specific!"
@@ -109,9 +132,6 @@ def process_decision(event: dict):
             text = reply_text,
             thread_ts = thread_ts
         )
-
-
-
         print("Reply sent to slack")
 
 
