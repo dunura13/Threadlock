@@ -5,6 +5,7 @@ import google.generativeai as genai
 from supabase import create_client, Client
 from slack_sdk import WebClient
 import json
+from jira import JIRA
 
 
 
@@ -25,7 +26,12 @@ slack_client = WebClient( # initalize slack app
 genai.configure(api_key = os.environ.get("GEMINI_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-slack_client
+# JIRA initalization
+jira_options = {'server':os.environ.get("JIRA_URL")}
+jira = JIRA(
+    options = jira_options,
+    basic_auth = (os.environ.get("JIRA_EMAIL"), os.environ.get("JIRA_API_TOKEN"))
+)
 
 
 
